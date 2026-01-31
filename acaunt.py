@@ -5,10 +5,14 @@ import sys
 # -------- socketio --------
 sio = socketio.Client()
 nickname = ""
+connection_status = False
 
 @sio.event
 def connect():
+    global connection_status
+    connection_status = True
     print("✅ Connected to server")
+
     sio.emit("set_nickname", nickname)
 
 @sio.event
@@ -65,6 +69,17 @@ while True:
                 if len(nickname) < 10:
                     nickname += event.unicode
 
+    if connection_status:
+        # гра
+        while connection_status:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+            screen.fill(BG)
+            draw_text("Connected!", FONT, GREEN, WIDTH//2, HEIGHT - 40, center=True)
+
+            pygame.display.update()
     # ---- DRAW ----
     screen.fill(BG)
 
@@ -91,5 +106,6 @@ while True:
     pygame.draw.rect(screen, GREEN, play_btn, border_radius=8)
     draw_text("CONNECT", FONT, (0,0,0),
               play_btn.centerx, play_btn.centery, center=True)
+    
 
     pygame.display.update()
