@@ -20,9 +20,10 @@ def disconnect(sid):
 
 
 @sio.on("set_nickname")
-def set_nickname(nick):
+def set_nickname(sid, nick):
     players.append(nick)
-    socketio.emit("players_update", players)
+    # print(nick)
+    sio.emit("players_update", players)
 
 print("Сервер запущено на порту 3000")
 eventlet.wsgi.server(eventlet.listen(("0.0.0.0", 3000)), app)
