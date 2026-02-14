@@ -7,13 +7,27 @@ import threading
 sio = socketio.Client()
 nickname = ""
 connection_status = False
+countdown_value = None
+
+
+@sio.on("countdown")
+def on_countdown(data):
+    global countdown_value
+    countdown_value = data
+
+@sio.on("start_game")
+def on_start_game():
+    global state
+    state = "GAME"
 
 @sio.event
 def connect():
-    global connection_status
+    global connection_status, state
     connection_status = True
+    state = "WAIT"
     print("✅ Connected to server")
     sio.emit("set_nickname", nickname)
+
 
 @sio.event
 def disconnect():
@@ -107,24 +121,29 @@ while True:
         draw_text("CONNECT", FONT, (0,0,0),
                   play_btn.centerx, play_btn.centery, center=True)
 
-    # ---------- WAIT SCREEN ----------
     elif state == "WAIT":
         draw_text("CONNECTED", FONT_BIG, GREEN, WIDTH//2, 80, center=True)
-        draw_text(
-            "You joined the server",
-            FONT,
-            WHITE,
-            WIDTH//2,
-            140,
-            center=True
-        )
-        draw_text(
-            "Waiting for another player...",
-            FONT,
-            GRAY,
-            WIDTH//2,
-            175,
-            center=True
-        )
+
+        if countdown_value is not None:
+            draw_text(
+                f"Game starting in {countdown_value}",
+                FONT_BIG,
+                WHITE,
+                WIDTH//2,
+                150,
+                center=True
+            )
+        else:
+            draw_text(
+                "Waiting for another player...",
+                FONT,
+                GRAY,
+                WIDTH//2,
+                150,
+                center=True
+            )
+
+    elif state == "GAME":
+        draw_text("GAME STARTED!", FONT_BIG, GREEN, WIDTH//2, HEIGHT//2, center=True)
 
     pygame.display.update()

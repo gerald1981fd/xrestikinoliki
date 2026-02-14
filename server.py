@@ -1,29 +1,41 @@
 import socketio
 import eventlet
+import time
+import threading
 
-players = []
+players = {}
 sio = socketio.Server(cors_allowed_origins="*")
 app = socketio.WSGIApp(sio)
 
+# ---------- CONNECT ----------
 @sio.event
 def connect(sid, environ):
-    print("Клієнт підключився:", sid)
+    print("Підключився:", sid)
 
-@sio.event
-def message(sid, data):
-    print("Отримано:", data)
-    sio.emit("message", "Привіт з сервера!", to=sid)
-
+# ---------- DISCONNECT ----------
 @sio.event
 def disconnect(sid):
-    print("Клієнт відключився:", sid)
+    if sid in players:
+        print("Вийшов:", players[sid])
+        del players[sid]
+        sio.emit("players_update", list(players.values()))
 
-
+# ---------- SET NICK ----------
 @sio.on("set_nickname")
 def set_nickname(sid, nick):
-    players.append(nick)
-    # print(nick)
-    sio.emit("players_update", players)
+    players[sid] = nick
+    sio.emit("players_update", list(players.values()))
 
-print("Сервер запущено на порту 3000")
+    if len(players) == 2:
+        threading.Thread(target=start_countdown).start()
+
+# ---------- COUNTDOWN ----------
+def start_countdown():
+    for i in range(3, 0, -1):
+        sio.emit("countdown", i)
+        time.sleep(1)
+
+    sio.emit("start_game")
+
+print("Сервер запущено на 3000")
 eventlet.wsgi.server(eventlet.listen(("0.0.0.0", 3000)), app)
