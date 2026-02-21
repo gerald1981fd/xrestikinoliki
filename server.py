@@ -1,7 +1,5 @@
 import socketio
 import eventlet
-import time
-import threading
 
 players = {}
 sio = socketio.Server(cors_allowed_origins="*")
@@ -27,13 +25,13 @@ def set_nickname(sid, nick):
     sio.emit("players_update", list(players.values()))
 
     if len(players) == 2:
-        threading.Thread(target=start_countdown).start()
+        sio.start_background_task(start_countdown)
 
 # ---------- COUNTDOWN ----------
 def start_countdown():
     for i in range(3, 0, -1):
         sio.emit("countdown", i)
-        time.sleep(1)
+        eventlet.sleep(1)
 
     sio.emit("start_game")
 

@@ -14,6 +14,7 @@ countdown_value = None
 def on_countdown(data):
     global countdown_value
     countdown_value = data
+    print("Отримано countdown:", countdown_value)
 
 @sio.on("start_game")
 def on_start_game():
