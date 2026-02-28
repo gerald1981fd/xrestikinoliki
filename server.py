@@ -87,22 +87,38 @@ def make_move(sid, data):
     # ----- WIN -----
     if check_win(current_turn):
         winner = current_turn
-        reset_board()
 
+        # Спочатку відправляємо фінальну дошку з переможцем
         sio.emit("board_update", {
             "board": board,
-            "winner": winner,
+            "winner": winner
+        })
+
+        # Даємо клієнтам 2 секунди побачити результат
+        eventlet.sleep(2)
+
+        reset_board()
+
+        # Тепер починаємо новий раунд
+        sio.emit("board_update", {
+            "board": board,
             "turn": current_turn
         })
         return
 
     # ----- DRAW -----
     if check_draw():
+        sio.emit("board_update", {
+            "board": board,
+            "winner": "DRAW"
+        })
+
+        eventlet.sleep(2)
+
         reset_board()
 
         sio.emit("board_update", {
             "board": board,
-            "winner": "DRAW",
             "turn": current_turn
         })
         return
