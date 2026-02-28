@@ -32,11 +32,13 @@ def on_countdown(data):
 
 @sio.on("game_start")
 def on_game_start(data):
-    global state, my_symbol, enemy_nick, current_turn
+    global state, my_symbol, enemy_nick, current_turn, enemy_symbol
 
     my_symbol = data["symbol"]
     enemy_nick = data["enemy"]
     current_turn = data["turn"]
+
+    enemy_symbol = "O" if my_symbol == "X" else "X"
 
     state = "GAME"
 
@@ -55,7 +57,6 @@ def on_board_update(data):
 
     if "turn" in data:
         current_turn = data["turn"]
-
 @sio.event
 def connect():
     global connection_status, state

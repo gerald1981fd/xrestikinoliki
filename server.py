@@ -4,8 +4,8 @@ import eventlet
 sio = socketio.Server(cors_allowed_origins="*")
 app = socketio.WSGIApp(sio)
 
-players = {}          # sid -> nickname
-symbols = {}          # sid -> X/O
+players = {}
+symbols = {}
 board = [[None]*3 for _ in range(3)]
 current_turn = None
 
@@ -84,22 +84,30 @@ def make_move(sid, data):
 
     board[r][c] = current_turn
 
+    # ----- WIN -----
     if check_win(current_turn):
+        winner = current_turn
+        reset_board()
+
         sio.emit("board_update", {
             "board": board,
-            "winner": current_turn
+            "winner": winner,
+            "turn": current_turn
         })
-        reset_board()
         return
 
+    # ----- DRAW -----
     if check_draw():
+        reset_board()
+
         sio.emit("board_update", {
             "board": board,
-            "winner": "DRAW"
+            "winner": "DRAW",
+            "turn": current_turn
         })
-        reset_board()
         return
 
+    # ----- NEXT TURN -----
     current_turn = "O" if current_turn == "X" else "X"
 
     sio.emit("board_update", {
